@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>VrzzN Digital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Young+Serif&display=swap">
+<style>
+/* Conceito: a página é o tampo de uma mesa de jogo vista de cima.
+   Feltro ao fundo, trilho de madeira no topo, bandeja de dados no centro,
+   e cada ferramenta é uma ficha ou folha de papel pousada sobre o feltro. */
+:root {
+  --felt: #1f3a40;
+  --felt-deep: #17302f;
+  --on-felt: #f1e9d6;
+  --on-felt-soft: #b9cbc5;
+  --wood: #3b2716;
+  --wood-hi: #5a3d24;
+  --brass: #c9a24f;
+  --paper: #e9dec4;
+  --paper-2: #dccfae;
+  --card: #f6efdd;
+  --ink: #2a2017;
+  --ink-soft: #5e4f3b;
+  --rule: #b8a77f;
+  --oxblood: #8c2b2f;
+  --oxblood-dk: #5a1a1d;
+  --sim: #25643f;
+  --nao: #8c2b2f;
+  --evento: #4a3a8c;
+  --bone: #efe6d2;
+  --focus: #ffd98a;
+  --font-display: "Young Serif", Georgia, "Times New Roman", serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --felt: #86aaa5; --felt-deep: #6f948f; --on-felt: #14232a; --on-felt-soft: #213639; --focus: #4a3a8c;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --felt: #86aaa5; --felt-deep: #6f948f; --on-felt: #14232a; --on-felt-soft: #213639; --focus: #4a3a8c;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body {
+  margin: 0; color: var(--on-felt);
+  font: 400 18px/1.55 var(--font-body);
+  background:
+    radial-gradient(ellipse at 50% 20%, transparent 40%, rgba(0,0,0,.28) 100%),
+    var(--grain),
+    var(--felt);
+  background-attachment: fixed;
+  min-height: 100vh;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-bottom: 56px;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  background: var(--wood); z-index: 30;
+}
+.wrap { max-width: 1080px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; line-height: 1.12; }
+h1 { font-size: clamp(2.4rem, 7vw, 4rem); }
+h2 { font-size: clamp(1.55rem, 3.2vw, 2rem); }
+h3 { font-size: 1.15rem; }
+p { margin: 0 0 .8em; }
+a { color: var(--oxblood); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.panel :focus-visible, .card :focus-visible, .result :focus-visible { --focus: #4a3a8c; }
+.label { font-size: .95rem; font-weight: 600; color: var(--ink-soft); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* trilho de madeira */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  padding: 6px max(16px, env(safe-area-inset-right, 0px)) 6px max(16px, env(safe-area-inset-left, 0px));
+  background:
+    repeating-linear-gradient(92deg, rgba(255,255,255,.035) 0 2px, transparent 2px 9px),
+    linear-gradient(var(--wood-hi), var(--wood));
+  border-bottom: 3px solid #1a0f06;
+  box-shadow: 0 1px 0 var(--brass), 0 8px 18px rgba(0,0,0,.35);
+}
+.top-in { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.brand { font-family: var(--font-display); font-size: 1.3rem; color: var(--bone); text-decoration: none; white-space: nowrap; text-shadow: 0 1px 0 rgba(0,0,0,.5); }
+nav { flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+nav ul { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; width: max-content; }
+nav a {
+  display: block; padding: 8px 12px; border-radius: 6px; text-decoration: none; color: #d8ccb2;
+  font-size: .98rem; font-weight: 600; white-space: nowrap;
+}
+nav a:hover { color: var(--bone); background: rgba(0,0,0,.28); }
+.tools { display: flex; gap: 6px; }
+.icon-btn {
+  min-height: 40px; padding: 0 12px; border-radius: 6px; border: 1px solid rgba(239,230,210,.35);
+  background: rgba(0,0,0,.25); color: var(--bone); font: 600 .9rem var(--font-body); cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--brass); }
+.top :focus-visible { --focus: #ffd98a; }
+
+/* botões */
+.btn {
+  min-height: 48px; padding: 0 22px; border-radius: 8px; border: 0;
+  background: var(--oxblood); color: var(--bone); font: 600 1.05rem var(--font-body);
+  cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 0 var(--oxblood-dk), 0 6px 10px rgba(0,0,0,.25);
+  transition: transform .08s, box-shadow .08s;
+}
+.btn:hover { background: #9d3337; }
+.btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--oxblood-dk); }
+.btn:disabled { opacity: .55; cursor: progress; }
+.btn.ghost { background: transparent; color: var(--ink); box-shadow: none; border: 1.5px solid var(--ink-soft); }
+.btn.ghost:hover { background: rgba(42,32,23,.08); }
+
+section.block { padding: 48px 0 0; }
+.sec-head { margin-bottom: 16px; }
+.sec-head p { color: var(--on-felt-soft); margin: 6px 0 0; max-width: 56ch; }
+
+/* folhas de papel sobre o feltro */
+.panel {
+  color: var(--ink); background: var(--paper); border-radius: 4px; padding: 22px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.45) inset, 0 2px 0 rgba(0,0,0,.18), 0 12px 22px rgba(0,0,0,.35);
+}
+.panel + .panel { margin-top: 14px; }
+.panel h3 { color: var(--oxblood); margin-bottom: 8px; }
+
+/* oráculo */
+.intro { padding: 36px 0 22px; max-width: 46rem; }
+.intro .sub { font-size: 1.2rem; color: var(--on-felt-soft); margin: 14px 0 0; max-width: 40ch; }
+.oracle { display: grid; grid-template-columns: 5fr 7fr; gap: 24px; align-items: start; }
+.oracle > * { min-width: 0; }
+textarea, input[type=number], select {
+  width: 100%; color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 4px;
+  font: 400 1.05rem var(--font-body); padding: 9px 12px;
+}
+textarea {
+  min-height: 132px; resize: vertical; line-height: 1.8rem; padding: 3px 12px 6px;
+  background-image: repeating-linear-gradient(transparent 0 calc(1.8rem - 1px), rgba(74,58,140,.28) calc(1.8rem - 1px) 1.8rem);
+  background-color: var(--card); background-attachment: local;
+}
+label.field { display: block; font-size: .95rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+details { margin-top: 14px; }
+summary { cursor: pointer; font-weight: 600; padding: 6px 0; color: var(--oxblood); }
+.manual { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+.manual .hint { grid-column: 1 / -1; color: var(--ink-soft); font-size: .95rem; margin: 0; }
+
+/* bandeja de dados: o elemento marcante da página */
+.tray {
+  border-radius: 22px; padding: 14px;
+  background:
+    repeating-linear-gradient(92deg, rgba(255,255,255,.04) 0 2px, transparent 2px 10px),
+    linear-gradient(145deg, var(--wood-hi), var(--wood));
+  box-shadow: 0 14px 28px rgba(0,0,0,.45), 0 0 0 1px #1a0f06, inset 0 1px 0 rgba(255,255,255,.18);
+}
+.tray-in {
+  border-radius: 12px; padding: 30px 16px 18px;
+  background: radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.07), transparent 65%), var(--grain), var(--felt-deep);
+  box-shadow: inset 0 8px 20px rgba(0,0,0,.6), inset 0 0 0 1px rgba(0,0,0,.5);
+}
+.dice-stage { display: flex; gap: clamp(20px, 6vw, 56px); justify-content: center; align-items: flex-start; }
+.die-box { text-align: center; }
+.die-box .label { margin-top: 14px; display: block; color: var(--on-felt-soft); font-weight: 400; }
+.die {
+  width: 96px; height: 96px; border-radius: 20px; padding: 14px; display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr); gap: 4px; background: var(--db); margin: 0 auto;
+  box-shadow: 0 5px 0 var(--dedge), 0 12px 14px rgba(0,0,0,.5), inset 0 2px 0 rgba(255,255,255,.55), inset 0 -3px 6px rgba(0,0,0,.18);
+}
+.die i { border-radius: 50%; background: transparent; }
+.die i.on { background: var(--dp); box-shadow: inset 0 2px 3px rgba(0,0,0,.55); }
+.die.a { --db: linear-gradient(145deg, #f8f1de, #d8ccae); --dedge: #a89a78; --dp: #2a2017; transform: rotate(-6deg); }
+.die.b { --db: linear-gradient(145deg, #a8353b, #701f24); --dedge: #4a1215; --dp: #f3e9d2; transform: rotate(8deg); }
+.die.rolling { animation: tumble .36s linear infinite; }
+.die.b.rolling { animation-delay: -.12s; }
+@keyframes tumble {
+  0%   { transform: translate(0, 0) rotate(-6deg); }
+  25%  { transform: translate(-8px, -16px) rotate(85deg); }
+  50%  { transform: translate(7px, -4px) rotate(175deg); }
+  75%  { transform: translate(-5px, -12px) rotate(265deg); }
+  100% { transform: translate(0, 0) rotate(354deg); }
+}
+
+/* resultado: uma ficha de papel com carimbo */
+.result { margin-top: 22px; min-height: 150px; color: var(--ink); }
+.result:has(.answer) {
+  background: var(--paper); border-radius: 4px; padding: 20px 22px; transform: rotate(-.5deg);
+  box-shadow: 0 1px 0 rgba(255,255,255,.45) inset, 0 2px 0 rgba(0,0,0,.18), 0 12px 22px rgba(0,0,0,.4);
+}
+.empty { color: var(--on-felt-soft); border: 1.5px dashed rgba(241,233,214,.4); border-radius: 6px; padding: 18px; }
+.panel .empty { color: var(--ink-soft); border-color: var(--rule); }
+.answer {
+  display: inline-block; font-family: var(--font-display); font-size: clamp(2.4rem, 8vw, 3.4rem); line-height: 1;
+  padding: .1em .28em 0; margin: 12px 0 6px; border: 4px solid currentColor; border-radius: 6px;
+  letter-spacing: .04em; transform: rotate(-4deg); mix-blend-mode: multiply; animation: stamp .3s ease-out;
+}
+.answer.sim { color: var(--sim); }
+.answer.nao { color: var(--nao); }
+@keyframes stamp {
+  from { transform: rotate(-4deg) scale(1.7); opacity: 0; }
+  60%  { transform: rotate(-4deg) scale(.95); opacity: 1; }
+  to   { transform: rotate(-4deg) scale(1); }
+}
+.q { font-style: italic; margin: 4px 0 10px; overflow-wrap: anywhere; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.chip { font-size: .92rem; padding: 2px 10px; border-radius: 4px; border: 1px solid var(--rule); background: var(--card); color: var(--ink-soft); }
+.event-box {
+  margin-top: 14px; padding: 10px 14px; border-radius: 2px; background: var(--paper-2);
+  border-left: 5px solid var(--evento); transform: rotate(.4deg);
+}
+.event-box h3 { color: var(--evento); margin: 2px 0; }
+.event-box p { margin: 4px 0 0; }
+.noev { color: var(--ink-soft); margin-top: 10px; }
+.msg { color: #8c2b2f; font-weight: 600; margin: 8px 0 0; min-height: 1.4em; }
+.fadein { animation: fadein .3s ease-out; }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } }
+
+/* fichas e tabelas */
+.grid-res { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-top: 14px; }
+.card {
+  background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-top: 3px solid var(--oxblood);
+  border-radius: 2px; padding: 10px 14px 12px; min-width: 0; box-shadow: 0 2px 4px rgba(0,0,0,.15);
+}
+.card .label { display: block; }
+.card .val { font-family: var(--font-display); font-size: 1.25rem; margin: 4px 0 2px; overflow-wrap: anywhere; }
+.card .code { font-size: .9rem; color: var(--ink-soft); }
+.card.wide { grid-column: 1 / -1; }
+.tbl-wrap { overflow-x: auto; margin-top: 8px; border: 1px solid var(--rule); border-radius: 4px; background: var(--card); }
+table { border-collapse: collapse; width: 100%; font-size: 1rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 600; color: var(--ink-soft); background: var(--paper-2); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.k { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--oxblood); font-weight: 600; }
+tr.hit td { background: rgba(232, 188, 58, .5); }
+td.n { font-weight: 600; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.two > * { min-width: 0; }
+.lookup { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; align-items: end; }
+.lookup > * { min-width: 0; }
+
+/* histórico */
+.hist { list-style: none; margin: 14px 0 0; padding: 0; }
+.hist li { padding: 10px 2px; border-bottom: 1px dashed var(--rule); overflow-wrap: anywhere; }
+.hist li:last-child { border-bottom: 0; }
+.hist .label { display: block; font-weight: 400; }
+.hist .t { font-weight: 600; }
+.hist li.empty { border: 1.5px dashed var(--rule); border-radius: 6px; padding: 14px; }
+
+/* regras */
+.rules { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+.rules > * { min-width: 0; }
+.rules ul { margin: 0 0 .8em; padding-left: 1.2em; }
+.example { border-left: 3px solid var(--oxblood); padding: 4px 0 4px 14px; margin: 10px 0; }
+.example p { margin: 0 0 4px; }
+footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid rgba(241,233,214,.3); color: var(--on-felt-soft); font-size: .95rem; }
+
+@media (max-width: 860px) {
+  .oracle, .rules, .two { grid-template-columns: 1fr; }
+  .intro { padding-top: 24px; }
+  .lookup { grid-template-columns: 1fr 1fr; }
+  .lookup > :first-child { grid-column: 1 / -1; }
+}
+@media (max-width: 520px) {
+  body { font-size: 17px; }
+  .panel { padding: 16px; }
+  .brand { font-size: 1.1rem; }
+  .die { width: 78px; height: 78px; padding: 11px; border-radius: 17px; }
+  .tray { padding: 10px; }
+  .tray-in { padding: 24px 8px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="top" id="topo">
+    <div class="top-in">
+      <a class="brand" href="#topo">VrzzN</a>
+      <nav aria-label="Seções do oráculo">
+        <ul>
+          <li><a href="#oraculo">Oráculo</a></li>
+          <li><a href="#eventos">Eventos</a></li>
+          <li><a href="#palavras">Palavras</a></li>
+          <li><a href="#npc">NPC</a></li>
+          <li><a href="#ganchos">Ganchos</a></li>
+          <li><a href="#clima">Clima</a></li>
+          <li><a href="#consulta">Consulta</a></li>
+          <li><a href="#regras">Regras</a></li>
+          <li><a href="#historico">Histórico</a></li>
+        </ul>
+      </nav>
+      <div class="tools">
+        <button class="icon-btn" id="sound-btn" type="button" aria-pressed="true">Som: sim</button>
+        <button class="icon-btn" id="theme-btn" type="button">Tema</button>
+      </div>
+    </div>
+</div>
+
+<div class="wrap">
+  <!-- ORÁCULO -->
+  <section class="block" id="oraculo" aria-labelledby="h-oraculo" style="padding-top:0">
+    <div class="intro">
+      <h1 id="h-oraculo">VrzzN Digital</h1>
+      <p class="sub">Faça uma pergunta de sim ou não e role dois dados. O primeiro responde (1 a 3 é não, 4 a 6 é sim). Se os dois mostrarem o mesmo número, acontece um evento.</p>
+    </div>
+    <div class="oracle">
+      <div class="panel">
+        <label class="field" for="question">Sua pergunta de sim ou não</label>
+        <textarea id="question" maxlength="240" placeholder="Essa casa parece abandonada?"></textarea>
+        <div class="row">
+          <button class="btn" id="roll-btn" type="button">Rolar os dados</button>
+        </div>
+        <details id="manual">
+          <summary>Usar meus dados físicos</summary>
+          <div class="manual">
+            <p class="hint">Digite o que saiu nos seus d6. O dado do evento só é consultado se os dois forem iguais.</p>
+            <div><label class="field" for="m-a">Dado 1 (resposta)</label><input id="m-a" type="number" min="1" max="6" inputmode="numeric" value="4"></div>
+            <div><label class="field" for="m-b">Dado 2 (evento)</label><input id="m-b" type="number" min="1" max="6" inputmode="numeric" value="2"></div>
+            <p class="hint">Se for evento, informe também o D66 (dezena e unidade). Deixe em branco para o site rolar por você.</p>
+            <div><label class="field" for="m-t">Evento: dezena</label><input id="m-t" type="number" min="1" max="6" inputmode="numeric" placeholder="1 a 6"></div>
+            <div><label class="field" for="m-u">Evento: unidade</label><input id="m-u" type="number" min="1" max="6" inputmode="numeric" placeholder="1 a 6"></div>
+            <div style="grid-column:1/-1"><button class="btn ghost" id="manual-btn" type="button">Consultar com estes valores</button></div>
+          </div>
+        </details>
+        <p class="msg" id="oracle-msg" role="alert"></p>
+      </div>
+      <div>
+        <div class="tray">
+          <div class="tray-in">
+            <div class="dice-stage">
+              <div class="die-box"><div class="die a idle" id="die-a" role="img" aria-label="dado 1"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="label">Dado 1 · resposta</span></div>
+              <div class="die-box"><div class="die b idle" id="die-b" role="img" aria-label="dado 2"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="label">Dado 2 · evento</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="result" id="oracle-result" aria-live="polite">
+          <div class="empty">A resposta aparece aqui. 1 a 3 é NÃO, 4 a 6 é SIM.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EVENTOS -->
+  <section class="block" id="eventos" aria-labelledby="h-eventos">
+    <div class="sec-head">
+      <h2 id="h-eventos">Eventos D66</h2>
+      <p>Sorteie direto um evento, sem passar pelo sim ou não. Primeiro dado é a dezena, segundo é a unidade.</p>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-top:0"><button class="btn" id="ev-btn" type="button">Sortear evento</button></div>
+      <div id="ev-result" aria-live="polite" style="margin-top:14px"><div class="empty">Nenhum evento sorteado ainda.</div></div>
+      <details open><summary>Tabela completa (18 eventos)</summary><div class="tbl-wrap" id="ev-table"></div></details>
+    </div>
+  </section>
+
+  <!-- PALAVRAS -->
+  <section class="block" id="palavras" aria-labelledby="h-palavras">
+    <div class="sec-head">
+      <h2 id="h-palavras">Palavras aleatórias</h2>
+      <p>Use como ideias ou descrições. Cada coluna recebe seu próprio D66.</p>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-top:0">
+        <button class="btn" id="w-btn" type="button">Sortear 3 palavras</button>
+        <button class="btn ghost" id="w1-btn" type="button">Sortear 1 palavra</button>
+      </div>
+      <div id="w-result" aria-live="polite" style="margin-top:14px"><div class="empty">Sorteie palavras para inspirar a cena.</div></div>
+      <details><summary>Tabela completa (36 linhas)</summary><div class="tbl-wrap" id="w-table"></div></details>
+    </div>
+  </section>
+
+  <!-- NPC -->
+  <section class="block" id="npc" aria-labelledby="h-npc">
+    <div class="sec-head">
+      <h2 id="h-npc">Gerador de NPC D66</h2>
+      <p>Sete rolagens: modificador, papel, motivação, intenção, desejo, reação inicial e humor.</p>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-top:0"><button class="btn" id="npc-btn" type="button">Gerar NPC</button></div>
+      <div id="npc-result" aria-live="polite"><div class="grid-res"><div class="card wide"><div class="empty" style="border:0;padding:0">Gere um NPC para ver os sete campos.</div></div></div></div>
+      <details><summary>Tabelas do NPC</summary><div class="two" id="npc-tables"></div></details>
+    </div>
+  </section>
+
+  <!-- GANCHOS -->
+  <section class="block" id="ganchos" aria-labelledby="h-ganchos">
+    <div class="sec-head">
+      <h2 id="h-ganchos">Ganchos de história D66</h2>
+      <p>Um assunto e um acontecimento formam a ideia inicial de uma cena.</p>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-top:0"><button class="btn" id="g-btn" type="button">Gerar gancho</button></div>
+      <div id="g-result" aria-live="polite"><div class="grid-res"><div class="card wide"><div class="empty" style="border:0;padding:0">Gere um gancho para combinar assunto e acontecimento.</div></div></div></div>
+      <details><summary>Tabelas de ganchos</summary><div class="two" id="g-tables"></div></details>
+    </div>
+  </section>
+
+  <!-- CLIMA -->
+  <section class="block" id="clima" aria-labelledby="h-clima">
+    <div class="sec-head">
+      <h2 id="h-clima">Gerador de clima D66</h2>
+      <p>Atmosfera para abrir ou mudar uma cena.</p>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-top:0"><button class="btn" id="c-btn" type="button">Sortear clima</button></div>
+      <div id="c-result" aria-live="polite" style="margin-top:14px"><div class="empty">Role para descobrir como está o ar.</div></div>
+      <details><summary>Tabela completa (36 climas)</summary><div class="tbl-wrap" id="c-table"></div></details>
+    </div>
+  </section>
+
+  <!-- CONSULTA MANUAL -->
+  <section class="block" id="consulta" aria-labelledby="h-consulta">
+    <div class="sec-head">
+      <h2 id="h-consulta">Consultar por D66</h2>
+      <p>Rolou no dado físico? Escolha a tabela e digite os dois dados.</p>
+    </div>
+    <div class="panel">
+      <div class="lookup">
+        <div><label class="field" for="l-tab">Tabela</label><select id="l-tab"></select></div>
+        <div><label class="field" for="l-t">Dezena</label><input id="l-t" type="number" min="1" max="6" inputmode="numeric" value="3"></div>
+        <div><label class="field" for="l-u">Unidade</label><input id="l-u" type="number" min="1" max="6" inputmode="numeric" value="5"></div>
+      </div>
+      <div id="l-result" aria-live="polite" style="margin-top:14px"></div>
+    </div>
+  </section>
+
+  <!-- REGRAS -->
+  <section class="block" id="regras" aria-labelledby="h-regras">
+    <div class="sec-head">
+      <h2 id="h-regras">Como usar o VrzzN</h2>
+      <p>Um oráculo simples para jogar sozinho ou para destravar a mesa.</p>
+    </div>
+    <div class="rules">
+      <div class="panel" style="margin:0">
+        <h3>Os dois dados</h3>
+        <p>Neste oráculo, você joga com 2 dados de 6 lados (D6), de cores diferentes:</p>
+        <ul><li>1 dado para <b>resposta</b></li><li>1 dado para <b>evento</b></li></ul>
+        <p><b>Faça uma pergunta de sim ou não e role os dados.</b></p>
+        <ul><li>1–3 = Não</li><li>4–6 = Sim</li></ul>
+        <p><b>Se os dois dados mostrarem o mesmo número, ocorre um evento.</b> Role na tabela de eventos (D66).</p>
+        <h3 style="margin-top:16px">Como rolar D66</h3>
+        <ul><li>primeiro dado = dezena</li><li>segundo dado = unidade</li></ul>
+        <p>Exemplo: resultado 3 e 5 = 35.</p>
+      </div>
+      <div class="panel" style="margin:0">
+        <h3>Exemplo</h3>
+        <div class="example">
+          <p>Você está diante de uma casa isolada.</p>
+          <p><b>Pergunta:</b> Essa casa parece abandonada?</p>
+          <p><b>Resultado:</b> dado resposta = 2, dado evento = 3.</p>
+          <p><b>Resposta:</b> Não.</p>
+        </div>
+        <p>Como os números são diferentes, nenhum evento acontece. Porém, se fosse, por exemplo, 2 e 2, um evento seria ativado.</p>
+        <h3 style="margin-top:16px">Dica</h3>
+        <p>Se tiver dúvida, pergunte ao oráculo. Se quiser ideias ou descrições, use a tabela de palavras aleatórias.</p>
+        <h3 style="margin-top:16px">Outras tabelas</h3>
+        <p>Você também pode usar:</p>
+        <ul>
+          <li><a href="#eventos">Eventos</a> para mudanças na história</li>
+          <li><a href="#palavras">Palavras aleatórias</a> para ideias e descrições</li>
+          <li><a href="#npc">NPC</a> para personagens</li>
+          <li><a href="#clima">Clima</a> para atmosfera da cena</li>
+          <li><a href="#ganchos">Ganchos de história</a> para ideia inicial de cena</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTÓRICO -->
+  <section class="block" id="historico" aria-labelledby="h-hist">
+    <div class="sec-head">
+      <h2 id="h-hist">Histórico da sessão</h2>
+      <p>As últimas 30 rolagens ficam guardadas neste navegador.</p>
+    </div>
+    <div class="panel">
+      <div class="row" style="margin-top:0">
+        <button class="btn ghost" id="hist-clear" type="button">Limpar histórico</button>
+        <span id="hist-confirm" hidden>
+          <span style="margin-right:8px">Apagar tudo?</span>
+          <button class="btn" id="hist-yes" type="button">Sim, apagar</button>
+          <button class="btn ghost" id="hist-no" type="button">Cancelar</button>
+        </span>
+      </div>
+      <ul class="hist" id="hist"></ul>
+    </div>
+  </section>
+
+  <footer>VrzzN Digital. Tabelas e regras do oráculo VrzzN, adaptadas para uso na tela.</footer>
+</div>
+
+<script>
+/* ---------- DADOS ---------- */
+const EVENTOS = [
+  ["Retorno Inesperado","Algo ou alguém do passado volta à cena com impacto imediato."],
+  ["Chegada Repentina","Um novo personagem, grupo ou criatura aparece no local."],
+  ["Mudança de Lado","Um NPC ou facção muda drasticamente sua posição ou motivação."],
+  ["Tudo a Favor","As coisas fluem de forma surpreendentemente positiva para os protagonistas."],
+  ["Ameaça Emergente","Um novo perigo ou obstáculo surge de forma direta ou sutil."],
+  ["Revelação Chocante","Um segredo, traição ou verdade escondida vem à tona."],
+  ["Obsessão Acelerada","Um NPC ou entidade age de forma intensa e obsessiva."],
+  ["Objeto Crucial","Um item ou recurso ganha importância inesperada para a trama."],
+  ["Conexão Oculta","Descobre-se uma ligação significativa entre personagens, eventos ou locais."],
+  ["Avanço Rápido","A história salta no tempo ou evolui para a próxima grande cena."],
+  ["Redirecionamento","A trama principal muda de foco ou ganha nova direção."],
+  ["Conflito Forçado","Um confronto direto (verbal, físico ou emocional) se torna inevitável."],
+  ["Fragmento de Visão","Uma informação, pista ou visão guia os personagens a algo novo."],
+  ["Nova Missão","Um novo objetivo ou tarefa surge naturalmente da situação."],
+  ["Local Relevante","Um novo local se revela importante ou é introduzido na narrativa."],
+  ["Cena Paralela","A história se divide ou intercala com outro ponto de vista."],
+  ["Encerramento Parcial","Parte da trama se conclui ou chega a uma resolução temporária."],
+  ["Ação Determinante","Algo acontece que muda o rumo da narrativa a partir de agora."]
+].map(([n,d]) => ({t:n, d}));
+
+const PAL1 = ["Dúvida","Distração","Semente","Água","Poluição","Frio","Quente","Morno","Pedra","Terra","Fogo","Areia","Violência","Viagem","Calmaria","Tempo","Perda","Ganho","Recebido","Oferta","Asqueroso","Sorrateiro","Confuso","Mecanismo","Sombras","Incalculável","Destruído","Amaldiçoado","Magia","Mistério","Ar","Vento","Pequeno","Gigante","Novo","Velho"];
+const PAL2 = ["Fuga","Moeda","Mordida","Brilho","Metal","Caminho","Corda","Dor","Medo","Pão","Pechincha","Sapato","Jarra","Pano","Casco","Cajado","Símbolo","Encontro","Subterfúgio","Identificado","Elástico","Dualidade","Radiante","Tagarela","Mentira","Verdade","Torrente","Estrela","Ponta","Corte","Peso","Inversão","Inteiro","Quebrado","Feroz","Atração"];
+const PAL3 = ["Vingar","Indicação","Exaltação","Redução","Maltratado","Cuidado","Excesso","Escassez","Escuro","Claro","Mal","Bom","Liso","Áspero","Vigilante","Nebuloso","Turvo","Fácil","Difícil","Equilíbrio","Barro","Montanha","Neve","Lava","Onda","Certeza","Vida","Morte","Horizonte","Ecos","Raiz","Despertar","Nômade","Véu","Sussurro","Labirinto"];
+
+const NPC_MOD = ["Misterioso","Arrogante","Medroso","Sarcástico","Sábio","Violento","Manipulador","Eufórico","Doente","Sombrio","Fanático","Culpado","Ambicioso","Paranóico","Carismático","Corrupto","Vingativo","Confuso"];
+const NPC_PAPEL = ["Comerciante","Combatente","Especialista","Ladrão","Nobre","Curandeiro","Caçador","Artista","Seguidor","Capitão","Comunicador","Explorador","Líder","Inventor","Trabalhador","Ermitão","Mensageiro","Guardião"];
+const VERBOS = ["Proteger","Observar","Descobrir","Roubar","Explorar","Esconder","Manipular","Buscar","Ajudar","Controlar","Salvar","Negociar","Fugir","Guiar","Destruir","Criar","Vingar","Unir"];
+const NPC_DESEJO = ["Segredo","Objeto raro","Glória","Riqueza","Poder","Sabedoria","Conhecimento","Liberdade","Família","Convicção","Lugar","Destino","Energia / Força","Amor","Justiça","Tradição","Força maior","Sobrevivência"];
+const NPC_REACAO = ["Hostil","Desconfiado","Neutro","Amigável","Curioso","Medroso","Observador","Submisso","Ofendido","Cordial","Cauteloso","Sedutor","Frio","Impaciente","Protetor","Agressivo","Solícito","Seco"];
+const NPC_HUMOR = ["Zangado e inquieto","Tranquilo e calmo","Arisco e desconfiado","Animado e falante","Agressivo e impulsivo","Triste e cabisbaixo","Irônico e sarcástico","Entediado e indiferente","Ansioso e agitado","Misterioso e evasivo","Malicioso e zombeteiro","Apressado e nervoso","Confiante e dominante","Melancólico e calado","Curioso e atento","Sonhador e distraído","Brincalhão e leve","Inquieto e paranoico"];
+
+const GANCHO_ASSUNTO = ["Um local esquecido","Objeto incomum","Um estranho visitante","Uma figura desconhecida","Um sinal distante","Um som inexplicável","Um símbolo desconhecido","Objeto importante perdido","Um animal incomum","Estrutura escondida","Um registro bloqueado","Um grupo misterioso","Uma identidade escondida","Uma voz distante","Mapa incompleto","Um lugar isolado","Um rastro recente","Um reflexo estranho"];
+const GANCHO_ACONT = ["Apareceu do nada","Desapareceu sem vestígios","É evitado por todos","Atrai sonhos estranhos","Fala de forma incompreensível","Está sempre em movimento","Surge apenas à noite","Reage à presença humana","Nunca está no mesmo lugar","Brilhou em um momento incomum","Causa desconforto aos animais","Foi escondido há muito tempo","Revela imagens ao toque","Ecoa vozes distantes","Atrai pessoas incomuns","Emite calor sem razão","Imita sons conhecidos","Está ligado a algo maior"];
+
+const CLIMA = ["Céu carregado e opressivo","Neblina rasteira cobre tudo","Calor sufocante e seco","Vento gelado assobiando","Garoa persistente e fria","Ar parado e pesado",
+"Chuva fina e constante","Noite mais escura que o comum","Cheiro estranho no ar","Céu estrelado e silencioso","Tempestade distante ecoando","Céu limpo com brilho incomum",
+"Vento quente e irregular","Nuvens se movem de forma estranha","Barulhos distantes e sem fonte","Neve silenciosa e densa","Umidade grudando na pele","Clarão súbito no horizonte",
+"Pó fino no ar","Animais silenciosos e ausentes","Calor abafado vindo da terra","Raios cortam o céu em silêncio","O céu parece errado","Bruma incomum surge do chão",
+"Vento gira em círculos breves","Sons distantes levados pelo vento","Chão úmido sem ter chovido","Frio cortante repentino","Céu sem nuvens, mas escuro","O ar vibra levemente",
+"Odores doces e desconhecidos","Gotas caem sem nuvens visíveis","Cor incomum no céu","Poeira cobrindo tudo ao redor","Flashes de luz sem som","Sombra parece se mover sozinha"];
+
+const obj = a => a.map(t => ({t}));
+/* Registro de tabelas: size 18 = faixas de dois números; size 36 = um número por linha */
+const TABS = {
+  eventos:   {label:"Eventos", size:18, items:EVENTOS},
+  pal1:      {label:"Palavras, coluna 1–2", size:36, items:obj(PAL1)},
+  pal2:      {label:"Palavras, coluna 3–4", size:36, items:obj(PAL2)},
+  pal3:      {label:"Palavras, coluna 5–6", size:36, items:obj(PAL3)},
+  npcMod:    {label:"NPC, modificador", size:18, items:obj(NPC_MOD)},
+  npcPapel:  {label:"NPC, papel", size:18, items:obj(NPC_PAPEL)},
+  npcMot:    {label:"NPC, motivação (verbo)", size:18, items:obj(VERBOS)},
+  npcInt:    {label:"NPC, intenção (verbo)", size:18, items:obj(VERBOS)},
+  npcDes:    {label:"NPC, desejo / objetivo", size:18, items:obj(NPC_DESEJO)},
+  npcRea:    {label:"NPC, reação inicial", size:18, items:obj(NPC_REACAO)},
+  npcHum:    {label:"NPC, humor", size:18, items:obj(NPC_HUMOR)},
+  gAss:      {label:"Gancho, assunto", size:18, items:obj(GANCHO_ASSUNTO)},
+  gAco:      {label:"Gancho, acontecimento", size:18, items:obj(GANCHO_ACONT)},
+  clima:     {label:"Clima", size:36, items:obj(CLIMA)}
+};
+/*END-DATA*/
+
+/* ---------- LÓGICA D66 ---------- */
+function idx(size, t, u) { return size === 36 ? (t - 1) * 6 + (u - 1) : (t - 1) * 3 + Math.floor((u - 1) / 2); }
+function codeLabel(size, i) {
+  if (size === 36) { return String(Math.floor(i / 6) + 1) + String(i % 6 + 1); }
+  const t = Math.floor(i / 3) + 1, s = (i % 3) * 2 + 1;
+  return t + "" + s + "–" + t + (s + 1);
+}
+function d6() {
+  const a = new Uint32Array(1); let x;
+  do { crypto.getRandomValues(a); x = a[0]; } while (x >= 4294967292);
+  return x % 6 + 1;
+}
+function rollD66(size) {
+  const t = d6(), u = d6(), i = idx(size, t, u);
+  return {t, u, i, code: "" + t + u};
+}
+function pick(tabKey, roll) {
+  const tab = TABS[tabKey];
+  return {...roll, item: tab.items[roll.i], range: codeLabel(tab.size, roll.i)};
+}
+function rollTab(tabKey) { return pick(tabKey, rollD66(TABS[tabKey].size)); }
+
+/* ---------- UTILIDADES ---------- */
+const $ = s => document.querySelector(s);
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in props || {}) {
+    const v = props[k];
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => { if (c != null) e.append(c.nodeType ? c : document.createTextNode(c)); });
+  return e;
+}
+const reduce = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function store(key, val) { try { if (val === undefined) return localStorage.getItem(key); localStorage.setItem(key, val); } catch (e) {} return null; }
+
+/* ---------- SOM ---------- */
+let ac = null, muted = false;
+function ctx() { if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (ac && ac.resume) ac.resume(); return ac; }
+function tone(freq, start, dur, type, vol) {
+  const c = ctx(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, c.currentTime + start);
+  g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(c.currentTime + start); o.stop(c.currentTime + start + dur + 0.02);
+}
+function sndRoll() { if (muted) return; try { for (let i = 0; i < 7; i++) tone(140 + Math.random() * 160, i * 0.085, 0.06, "square", 0.05); } catch (e) {} }
+function sndDone(kind) {
+  if (muted) return;
+  try {
+    if (kind === "sim") { tone(392, 0, .18, "triangle", .12); tone(523, .12, .28, "triangle", .12); }
+    else if (kind === "nao") { tone(330, 0, .2, "triangle", .12); tone(220, .13, .32, "triangle", .12); }
+    else if (kind === "evento") { tone(392, 0, .16, "sine", .12); tone(494, .12, .16, "sine", .12); tone(659, .24, .36, "sine", .12); }
+    else { tone(440, 0, .2, "triangle", .1); }
+  } catch (e) {}
+}
+
+/* ---------- DADOS NA TELA ---------- */
+const PIPS = {1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8]};
+function setDie(el, v) {
+  const on = PIPS[v];
+  [...el.children].forEach((c, i) => c.classList.toggle("on", on.includes(i)));
+  el.setAttribute("aria-label", "dado mostrando " + v);
+}
+[["#die-a", 1], ["#die-b", 1]].forEach(([s, v]) => setDie($(s), v));
+async function tumble(els, finals) {
+  els.forEach(e => e.classList.remove("idle"));
+  if (reduce()) { els.forEach((e, i) => setDie(e, finals[i])); return; }
+  els.forEach(e => e.classList.add("rolling"));
+  sndRoll();
+  for (let n = 0; n < 9; n++) { els.forEach(e => setDie(e, d6())); await sleep(75); }
+  els.forEach((e, i) => { e.classList.remove("rolling"); setDie(e, finals[i]); });
+}
+
+/* ---------- HISTÓRICO ---------- */
+let history = [];
+try { history = JSON.parse(store("vrzzn-hist") || "[]"); if (!Array.isArray(history)) history = []; } catch (e) { history = []; }
+function renderHistory() {
+  const ul = $("#hist"); ul.textContent = "";
+  if (!history.length) { ul.append(h("li", {class: "empty", text: "Nada rolado ainda. Suas consultas aparecem aqui, da mais recente para a mais antiga."})); return; }
+  history.forEach(r => {
+    const d = new Date(r.ts);
+    const hh = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    ul.append(h("li", {}, h("span", {class: "label", text: r.kind + " · " + hh}), h("span", {class: "t", text: r.title}), r.body ? h("div", {text: r.body}) : null));
+  });
+}
+function record(kind, title, body) {
+  history.unshift({ts: Date.now(), kind, title, body});
+  history = history.slice(0, 30);
+  store("vrzzn-hist", JSON.stringify(history));
+  renderHistory();
+}
+$("#hist-clear").onclick = () => { $("#hist-confirm").hidden = false; $("#hist-clear").hidden = true; };
+$("#hist-no").onclick = () => { $("#hist-confirm").hidden = true; $("#hist-clear").hidden = false; };
+$("#hist-yes").onclick = () => { history = []; store("vrzzn-hist", "[]"); renderHistory(); $("#hist-no").onclick(); };
+
+/* ---------- TABELAS VISÍVEIS ---------- */
+function buildTable(el, tabKey, withDesc) {
+  const tab = TABS[tabKey];
+  const body = h("tbody");
+  tab.items.forEach((it, i) => {
+    const tr = h("tr", {"data-i": i}, h("td", {class: "k", text: codeLabel(tab.size, i)}), h("td", {class: withDesc ? "n" : "", text: it.t}));
+    if (withDesc) tr.append(h("td", {text: it.d}));
+    body.append(tr);
+  });
+  const head = h("tr", {}, h("th", {text: "D66"}), h("th", {text: "Resultado"}));
+  if (withDesc) head.append(h("th", {text: "Descrição"}));
+  el.append(h("table", {}, h("thead", {}, head), body));
+}
+function hit(el, i) {
+  el.querySelectorAll("tr.hit").forEach(r => r.classList.remove("hit"));
+  const r = el.querySelector('tr[data-i="' + i + '"]'); if (r) r.classList.add("hit");
+}
+buildTable($("#ev-table"), "eventos", true);
+buildTable($("#c-table"), "clima", false);
+(function () {
+  const body = h("tbody");
+  for (let i = 0; i < 36; i++) body.append(h("tr", {"data-i": i}, h("td", {class: "k", text: codeLabel(36, i)}), h("td", {text: PAL1[i]}), h("td", {text: PAL2[i]}), h("td", {text: PAL3[i]})));
+  $("#w-table").append(h("table", {}, h("thead", {}, h("tr", {}, h("th", {text: "D66"}), h("th", {text: "1–2"}), h("th", {text: "3–4"}), h("th", {text: "5–6"}))), body));
+})();
+[["npcMod"], ["npcPapel"], ["npcMot"], ["npcInt"], ["npcDes"], ["npcRea"], ["npcHum"]].forEach(([k]) => {
+  const w = h("div", {}, h("h3", {text: TABS[k].label.replace("NPC, ", "")}), h("div", {class: "tbl-wrap"}));
+  buildTable(w.lastChild, k, false); $("#npc-tables").append(w);
+});
+[["gAss"], ["gAco"]].forEach(([k]) => {
+  const w = h("div", {}, h("h3", {text: TABS[k].label.replace("Gancho, ", "")}), h("div", {class: "tbl-wrap"}));
+  buildTable(w.lastChild, k, false); $("#g-tables").append(w);
+});
+
+/* ---------- ORÁCULO ---------- */
+function eventBox(r) {
+  return h("div", {class: "event-box fadein"},
+    h("span", {class: "label", text: "Evento · D66 " + r.t + " e " + r.u + " = " + r.code + " (faixa " + r.range + ")"}),
+    h("h3", {text: r.item.t}), h("p", {text: r.item.d}));
+}
+let busy = false;
+function setBusy(b) { busy = b; $("#roll-btn").disabled = b; $("#manual-btn").disabled = b; }
+function showOracle(q, a, b, ev) {
+  const sim = a >= 4, same = a === b;
+  const box = $("#oracle-result"); box.textContent = "";
+  box.append(h("div", {class: "fadein"},
+    h("span", {class: "label", text: "Pergunta"}),
+    h("p", {class: "q", text: q || "(pergunta não escrita)"}),
+    h("div", {class: "chips"}, h("span", {class: "chip", text: "Dado 1 (resposta): " + a}), h("span", {class: "chip", text: "Dado 2 (evento): " + b})),
+    h("div", {class: "answer " + (sim ? "sim" : "nao"), text: sim ? "SIM" : "NÃO"})));
+  if (same && ev) box.append(eventBox(ev));
+  else box.append(h("p", {class: "noev", text: "Números diferentes: nenhum evento."}));
+  sndDone(same ? "evento" : sim ? "sim" : "nao");
+  record("Oráculo", (q || "(sem pergunta)") + " → " + (sim ? "SIM" : "NÃO"),
+    "Dados " + a + " e " + b + (same && ev ? " · Evento " + ev.range + ": " + ev.item.t : ""));
+}
+function readDie(id) { const v = parseInt($(id).value, 10); return v >= 1 && v <= 6 ? v : null; }
+async function oracle(manual) {
+  if (busy) return;
+  const msg = $("#oracle-msg"); msg.textContent = "";
+  const q = $("#question").value.trim();
+  let a, b, ev = null;
+  if (manual) {
+    a = readDie("#m-a"); b = readDie("#m-b");
+    if (a == null || b == null) { msg.textContent = "Digite valores de 1 a 6 nos dois dados."; return; }
+    if (a === b) {
+      const t = readDie("#m-t"), u = readDie("#m-u"), mt = $("#m-t").value, mu = $("#m-u").value;
+      if ((mt || mu) && (t == null || u == null)) { msg.textContent = "O D66 do evento precisa de dezena e unidade de 1 a 6."; return; }
+      ev = pick("eventos", t != null ? {t, u, i: idx(18, t, u), code: "" + t + u} : rollD66(18));
+    }
+    setBusy(true);
+    await tumble([$("#die-a"), $("#die-b")], [a, b]);
+  } else {
+    setBusy(true);
+    a = d6(); b = d6();
+    if (a === b) ev = rollTab("eventos");
+    await tumble([$("#die-a"), $("#die-b")], [a, b]);
+  }
+  showOracle(q, a, b, ev);
+  if (ev) { hit($("#ev-table"), ev.i); }
+  setBusy(false);
+}
+$("#roll-btn").onclick = () => oracle(false);
+$("#manual-btn").onclick = () => oracle(true);
+
+/* ---------- EVENTOS ---------- */
+$("#ev-btn").onclick = () => {
+  const r = rollTab("eventos"); sndRoll(); setTimeout(() => sndDone("evento"), 400);
+  const box = $("#ev-result"); box.textContent = ""; box.append(eventBox(r)); hit($("#ev-table"), r.i);
+  record("Evento", r.range + " " + r.item.t, r.item.d);
+};
+
+/* ---------- PALAVRAS ---------- */
+const COLS = [["pal1", "Coluna 1–2"], ["pal2", "Coluna 3–4"], ["pal3", "Coluna 5–6"]];
+function wordCard(label, r) {
+  return h("div", {class: "card fadein"}, h("span", {class: "label", text: label}), h("div", {class: "val", text: r.item.t}), h("div", {class: "code", text: "D66 " + r.t + " e " + r.u + " = " + r.code}));
+}
+$("#w-btn").onclick = () => {
+  const rs = COLS.map(([k]) => rollTab(k)); sndRoll();
+  const box = $("#w-result"); box.textContent = "";
+  box.append(h("div", {class: "grid-res", style: "margin-top:0"}, rs.map((r, n) => wordCard(COLS[n][1], r))));
+  record("Palavras", rs.map(r => r.item.t).join(" · "), rs.map(r => "D66 " + r.code).join(" · "));
+};
+$("#w1-btn").onclick = () => {
+  const row = rollD66(36), col = d6(), k = COLS[Math.floor((col - 1) / 2)];
+  const r = pick(k[0], row); sndRoll();
+  const box = $("#w-result"); box.textContent = "";
+  box.append(h("div", {class: "grid-res", style: "margin-top:0"}, wordCard(k[1] + " (d6 = " + col + ")", r)));
+  hit($("#w-table"), r.i);
+  record("Palavra", r.item.t, "D66 " + r.code + ", d6 de coluna " + col);
+};
+
+/* ---------- NPC ---------- */
+const NPC_FIELDS = [["npcMod", "Modificador"], ["npcPapel", "Papel"], ["npcMot", "Motivação"], ["npcInt", "Intenção (verbo)"], ["npcDes", "Desejo / objetivo"], ["npcRea", "Reação inicial"], ["npcHum", "Humor"]];
+$("#npc-btn").onclick = () => {
+  const rs = NPC_FIELDS.map(([k]) => rollTab(k)); sndRoll(); setTimeout(() => sndDone("npc"), 300);
+  const box = $("#npc-result"); box.textContent = "";
+  box.append(h("div", {class: "grid-res"}, rs.map((r, n) => h("div", {class: "card fadein"},
+    h("span", {class: "label", text: NPC_FIELDS[n][1]}), h("div", {class: "val", text: r.item.t}), h("div", {class: "code", text: "D66 " + r.code + " (faixa " + r.range + ")"})))));
+  record("NPC", rs[0].item.t + " · " + rs[1].item.t,
+    "Motivação: " + rs[2].item.t + " · Intenção: " + rs[3].item.t + " · Desejo: " + rs[4].item.t + " · Reação: " + rs[5].item.t + " · Humor: " + rs[6].item.t);
+};
+
+/* ---------- GANCHOS ---------- */
+$("#g-btn").onclick = () => {
+  const a = rollTab("gAss"), b = rollTab("gAco"); sndRoll(); setTimeout(() => sndDone("npc"), 300);
+  const box = $("#g-result"); box.textContent = "";
+  box.append(h("div", {class: "grid-res"},
+    h("div", {class: "card fadein"}, h("span", {class: "label", text: "Assunto"}), h("div", {class: "val", text: a.item.t}), h("div", {class: "code", text: "D66 " + a.code + " (faixa " + a.range + ")"})),
+    h("div", {class: "card fadein"}, h("span", {class: "label", text: "Acontecimento"}), h("div", {class: "val", text: b.item.t}), h("div", {class: "code", text: "D66 " + b.code + " (faixa " + b.range + ")"}))));
+  record("Gancho", a.item.t + " + " + b.item.t, "D66 " + a.code + " e " + b.code);
+};
+
+/* ---------- CLIMA ---------- */
+$("#c-btn").onclick = () => {
+  const r = rollTab("clima"); sndRoll(); setTimeout(() => sndDone("npc"), 300);
+  const box = $("#c-result"); box.textContent = "";
+  box.append(h("div", {class: "card fadein"}, h("span", {class: "label", text: "Clima · D66 " + r.t + " e " + r.u + " = " + r.code}), h("div", {class: "val", text: r.item.t})));
+  hit($("#c-table"), r.i);
+  record("Clima", r.code + " · " + r.item.t, "");
+};
+
+/* ---------- CONSULTA MANUAL ---------- */
+Object.keys(TABS).forEach(k => $("#l-tab").append(h("option", {value: k, text: TABS[k].label})));
+function lookup() {
+  const k = $("#l-tab").value, t = readDie("#l-t"), u = readDie("#l-u"), box = $("#l-result");
+  box.textContent = "";
+  if (t == null || u == null) { box.append(h("p", {class: "msg", text: "Digite dezena e unidade de 1 a 6."})); return; }
+  const r = pick(k, {t, u, i: idx(TABS[k].size, t, u), code: "" + t + u});
+  const card = h("div", {class: "card"}, h("span", {class: "label", text: TABS[k].label + " · D66 " + t + " e " + u + " = " + r.code + " (faixa " + r.range + ")"}), h("div", {class: "val", text: r.item.t}));
+  if (r.item.d) card.append(h("p", {text: r.item.d, style: "margin:4px 0 0"}));
+  box.append(card);
+}
+["#l-tab", "#l-t", "#l-u"].forEach(s => $(s).addEventListener("input", lookup));
+lookup();
+
+/* ---------- SOM E TEMA ---------- */
+muted = store("vrzzn-mute") === "1";
+function paintSound() { const b = $("#sound-btn"); b.textContent = muted ? "Som: não" : "Som: sim"; b.setAttribute("aria-pressed", String(!muted)); }
+paintSound();
+$("#sound-btn").onclick = () => { muted = !muted; store("vrzzn-mute", muted ? "1" : "0"); paintSound(); if (!muted) sndDone("npc"); };
+(function () {
+  const saved = store("vrzzn-theme");
+  if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+  $("#theme-btn").onclick = () => {
+    const cur = document.documentElement.dataset.theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    const next = cur === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next; store("vrzzn-theme", next);
+  };
+})();
+renderHistory();
+</script>
+</body>
+</html>
