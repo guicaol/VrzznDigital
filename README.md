@@ -49,18 +49,6 @@ Não há dependências nem etapa de build. É um único arquivo.
 
 As fontes do Google precisam de internet. Sem conexão, a página usa as fontes serifadas do sistema.
 
-## Publicar no GitHub Pages
-
-1. Deixe o `index.html` na raiz do repositório.
-2. Em **Settings > Pages**, escolha **Deploy from a branch**, selecione `main` e `/ (root)`.
-3. O site fica disponível em `https://<usuario>.github.io/<repositorio>/`.
-
-## Estrutura
-
-```
-index.html   página inteira: HTML, CSS e JavaScript
-README.md    este arquivo
-```
 
 ## Créditos
 
